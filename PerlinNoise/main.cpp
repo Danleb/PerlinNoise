@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 //GLEW
 #define GLEW_STATIC
@@ -14,6 +15,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 //Размеры окна
 const GLuint WIDTH = 1000, HEIGHT = 800;
+
+float getTime()
+{
+	std::chrono::milliseconds time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	long ms = time.count();
+	float count = static_cast<float>(ms);
+	return count;
+}
 
 int main()
 {
@@ -143,34 +152,16 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	const int textureWidth = 500;
-	const int textureHeight = 500;
+
 
 	Effects::PerlinNoise* perlin = new Effects::PerlinNoise();
 
 #define dyn
 
 #ifdef  dyn
+	const int textureWidth = 100;
+	const int textureHeight = 100;
 	float* noiseImage = new float[textureHeight * textureWidth * 3];
-	const float coef = 5;
-	for (size_t u = 0; u < textureHeight; u++)
-	{
-		for (size_t i = 0; i < textureWidth; i++)
-		{
-			float x = (float)i / (float)textureWidth;
-			float y = (float)u / (float)textureHeight;
-			x *= coef;
-			y *= coef;
-			float val = perlin->GetNoise(x, y, 5, .5f);
-			val = (val + 1) / 2;
-			float b = val;
-			//char b = static_cast<char>(val * 255);
-
-			noiseImage[3 * u * textureWidth + 3 * i + 0] = b;
-			noiseImage[3 * u * textureWidth + 3 * i + 1] = b;
-			noiseImage[3 * u * textureWidth + 3 * i + 2] = b;
-		}
-	}
 #else
 	float noiseImage[] = {
 		0,1,0,		    0,1,0,	 0,0,1,
@@ -179,8 +170,6 @@ int main()
 	};
 #endif
 
-
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_FLOAT, noiseImage);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -188,14 +177,39 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	float start = getTime();
+
 	//Игровой цикл
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		const float coef = 5;
+		for (size_t u = 0; u < textureHeight; u++)
+		{
+			for (size_t i = 0; i < textureWidth; i++)
+			{
+				float x = (float)i / (float)textureWidth;
+				float y = (float)u / (float)textureHeight;
+				float time = getTime();
+				time -= start;
+				time /= 1000;
+				x = x * coef + time;
+				y = y * coef + time;
+				float val = perlin->GetNoise(x, y, 5, .5f);
+				val = (val + 1) / 2;
+				float b = val;
+				//char b = static_cast<char>(val * 255);
 
+				noiseImage[3 * u * textureWidth + 3 * i + 0] = b;
+				noiseImage[3 * u * textureWidth + 3 * i + 1] = b;
+				noiseImage[3 * u * textureWidth + 3 * i + 2] = b;
+			}
+		}
 
+		//glTexSubImage2D(noiseTex, 1, 0, 0, textureWidth, textureHeight, GL_RGB, GL_FLOAT, noiseImage);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_FLOAT, noiseImage);
 
 		//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);	

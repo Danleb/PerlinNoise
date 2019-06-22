@@ -1,0 +1,1 @@
+#add_executable (PerlinNoiseProject "PerlinNoise.cpp" "PerlinNoise.h")

@@ -185,6 +185,10 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		float time = getTime();
+		time -= start;
+		time /= 10000;
+
 		const float coef = 5;
 		for (size_t u = 0; u < textureHeight; u++)
 		{
@@ -192,9 +196,7 @@ int main()
 			{
 				float x = (float)i / (float)textureWidth;
 				float y = (float)u / (float)textureHeight;
-				float time = getTime();
-				time -= start;
-				time /= 1000;
+				
 				x = x * coef + time;
 				y = y * coef + time;
 				float val = perlin->GetNoise(x, y, 5, .5f);
